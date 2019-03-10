@@ -25,7 +25,6 @@ public class Json {
 
 		if (o instanceof List) {
 			try {
-//				System.out.println("------------");
 				s.append(tolistJson((List) o));
 			} catch (SecurityException | NoSuchMethodException e) {
 				e.printStackTrace();
@@ -50,11 +49,9 @@ public class Json {
 		try (FileWriter out = new FileWriter("person01.json")) {
 			out.write(s.toString());
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
-		// System.out.println(s.toString());
 		return s.toString();
-
 	}
 
 	/**
@@ -96,13 +93,11 @@ public class Json {
 					//对象调用m方法，获取值
 					value = m.invoke(o);
 					if (value instanceof List) {
-//						System.out.println("------");
 						s.append("\"list\":");
 						s.append(tolistJson((List) value));
 						// 删除第一个字符，确保是json格式
 //						s.deleteCharAt(0);
 					} else {
-
 						// 获取键对应的属性
 						Field field = clazz.getDeclaredField(key);
 						// 获取属性的注解
@@ -124,17 +119,13 @@ public class Json {
 							} else {
 								s.append(String.format("\"%s\":%s,", key, value));
 							}
-
 						}
 					}
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
 						| SecurityException | NoSuchMethodException e) {
-
 					e.printStackTrace();
 				}
-
 			}
-
 		}
 	}
 
@@ -148,13 +139,8 @@ public class Json {
 	private static Object toMapJson(HashMap<Object, Object> map) throws NoSuchFieldException {
 		StringBuilder s = new StringBuilder("{");
 		Class<? extends Set> class1 = map.keySet().getClass();
-//		System.out.println(class1.getName());
 		for (Object o : map.keySet()) {
-//			Class<? extends Object> clazz = o.getClass();
-//			System.out.println("----");
-//			System.out.println(o.getClass().getName());
 			s.append(String.format("\"%s\":%s,", o, toJson(map.get(o))));
-//			System.out.println(map.get(o));
 		}
 		s.append("}");
 		s.deleteCharAt(s.length() - 2);
@@ -193,7 +179,7 @@ public class Json {
 		try (FileWriter out = new FileWriter("person02.json")) {
 			out.write(s.toString());
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 		return s.toString();
 	}
@@ -229,7 +215,6 @@ public class Json {
 							s.append(String.format("\"%s\":%s,", key, tooJson(value)));
 							b = a;
 							break;
-
 						}
 						if (a.equals("isMap")) {
 							s.append(String.format("\"%s\":%s,", key, tooJson(value)));
@@ -244,13 +229,11 @@ public class Json {
 						} else {
 							s.append(String.format("\"%s\":%s,", key, value));
 						}
-
 					}
 
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					e.printStackTrace();
 				} catch (SecurityException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -259,7 +242,6 @@ public class Json {
 			s.deleteCharAt(s.length() - 1);
 		}
 		s.append("}");
-		// System.out.println(s.toString());
 		return s.toString();
 	}
 
@@ -277,14 +259,11 @@ public class Json {
 	public static Object fromJson(Class clazz, String json, int n)
 			throws ClassNotFoundException, NoSuchMethodException, SecurityException {
 		Object o = null;
-//		System.out.println(clazz.getName());
 		if (o instanceof HashMap) {
 			o = clazz.getDeclaredConstructor();
 		} else if (clazz.getSimpleName().equals("List")) {
 			o = new ArrayList<>();
-//			System.out.println("-------");
 		} else {
-//			System.out.println("ssssssssssssssssssssssssssssssssssssssssssssss");
 			try {
 				//创建一个对象
 				Constructor c = clazz.getDeclaredConstructor();
@@ -295,10 +274,7 @@ public class Json {
 				Field[] fs = clazz.getDeclaredFields();
 				for (Field f : fs) {
 					String key = f.getName();
-//					 System.out.println("ppp:"+key);
-
 					String name2 = key.substring(0, 1).toUpperCase() + key.substring(1);
-//				 System.out.println(f.getType());
 					Method m = clazz.getMethod("set" + name2, f.getType());
 //				if(json.contains("[")) {
 //					String s = listPatt(json);
@@ -370,25 +346,10 @@ public class Json {
 	public static <clazz01, clazz02> Object fromJson(Object map, Class clazz01, Class clazz02, String json)
 			throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
-//		System.out.println(clazz02);
 
-//		Object[] a = { String.class, Integer.class, long.class };
-//		String[] b = { "String", "Integer", "long" };
-//		System.out.println(clazz01.getTypeName());
-//		for (int i = 0; i < a.length; i++) {
-//			if (clazz01.equals(a[i])) {/
-//				if (i == 0) {
 					HashMap<Object, clazz02> newMap = new HashMap<>();
 					createMap(clazz02, json, newMap);
 					return newMap;
-//				} else if (i == 1) {
-//					HashMap<Integer, clazz02> newMap = new HashMap<>();
-//// 					createMap(clazz02, json, newMap);
-//				}
-//			}
-//		}
-		
-
 	}
 
 	private static <clazz02> void createMap(Class clazz02, String json, HashMap<Object, clazz02> newMap)
@@ -399,10 +360,8 @@ public class Json {
 			for (int i = 0; i < f.length; i++) {
 				p = fromJson(clazz02, json, i);
 				newMap.put(f[i], (clazz02) p);
-//				System.out.println("p de :" + p);
 			}
 			for (Object b : newMap.keySet()) {
-//				System.out.println("----" + newMap);
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -432,10 +391,7 @@ public class Json {
 			} else {
 				str.add(sss);
 			}
-//			System.out.println("~~~~~~~~~~" + sss);
 		}
-//		System.out.println(str.size());
-//		System.out.println("#########" + str.get(n));
 		if (c.equals(String.class)) {
 			return str.get(2 * n + 1);
 		} else {
@@ -457,15 +413,12 @@ public class Json {
 		String sss = null;
 		int t = 0;
 		while (mather.find()) {
-			// System.out.println(mather.group().toString());
 			sss = mather.group();
 			if (t == n) {
 				break;
 			}
 			t++;
-//			System.out.println("11111" + sss);
 		}
-
 		return sss;
 	}
 
@@ -482,10 +435,8 @@ public class Json {
 		Matcher mather = Pattern.compile(regex).matcher(json);
 		String sss = null;
 		while (mather.find()) {
-			// System.out.println(mather.group().toString());
 			sss = mather.group();
 		}
-
 		return sss;
 	}
 
@@ -495,27 +446,8 @@ public class Json {
 		Matcher mather = Pattern.compile(regex).matcher(json);
 		String sss = null;
 		while (mather.find()) {
-
 			sss = mather.group();
 		}
-
-		return sss;
-
-	}
-
-	private static String mapPatt(String json) {
-
-//		String regex = "(?<=(\\{\")|(},\"))[^\"\\:\\{]*";
-		String regex = "((?<=\").+?(?=\":\\{))|((?<=\").+?(?=\":))";
-
-		Matcher mather = Pattern.compile(regex).matcher(json);
-		String sss = "ss";
-		while (mather.find()) {
-
-			sss = mather.group();
-//			System.out.println(sss);
-		}
-//		System.out.println(sss);
 		return sss;
 
 	}
@@ -523,12 +455,10 @@ public class Json {
 	public static Object fromJson(Class clazz, String json)
 			throws ClassNotFoundException, NoSuchMethodException, SecurityException {
 		Object o = null;
-//		System.out.println(clazz.getName());
 		if (o instanceof HashMap) {
 			o = clazz.getDeclaredConstructor();
 		} else if (clazz.getSimpleName().equals("List")) {
 			o = new ArrayList<>();
-//			System.out.println("-------");
 		} else {
 			try {
 				Constructor c = clazz.getDeclaredConstructor();
@@ -539,10 +469,8 @@ public class Json {
 				Field[] fs = clazz.getDeclaredFields();
 				for (Field f : fs) {
 					String key = f.getName();
-//					 System.out.println("ppp:"+key);
                     //将第一个字母大写--因为要用get和set方法
 					String name2 = key.substring(0, 1).toUpperCase() + key.substring(1);
-//				 System.out.println(f.getType());
 					//通过方法的名字，得到并调用方法
 					Method m = clazz.getMethod("set" + name2, f.getType());
 
@@ -551,26 +479,15 @@ public class Json {
 					}
 
 					else if (f.isAnnotationPresent(Name.class)) {
-//						System.out.println("Address:\t" + f.getName());
-//						value = fromJson(f.getClass(), );
-//						System.out.println("addrss匹配字符串：" + ObPatt(json));
 						//通过全类名得到反射入口
 						Class<?> perClazz = Class.forName(f.getType().getName());
-//						System.out.println(f.getType());
-//						System.out.println("获取类名：" + perClazz.getName());
 						value = fromJson(perClazz, ObPatt(json));
-//						b = a;
 						m.invoke(o, value);
 						break;
-
 					} else {
-//				}
-//				if (b == null) {
 						value = patt(key, json, f.getType());
-//						System.out.println(value);
 						if (value != null) {
 							m.invoke(o, value);
-//					}
 						}
 					}
 				}
@@ -600,24 +517,14 @@ public class Json {
 		int j = 0;
 		if (c.equals(String.class)) {
 			while (mather.find()) {
-				// System.out.println(mather.group().toString());
 				sss = mather.group();
-
-//				System.out.println("++++" + sss);
-
 			}
 		} else {
 			while (mather.find()) {
-				// System.out.println(mather.group().toString());
 				sss = mather.group();
-
-//				System.out.println("++++" + sss);
-
 			}
 			return Integer.parseInt(sss);
 		}
-		// if(Pattern.compile("[0-9]*").matcher(sss).matches()) {
-
 		return sss;
 	}
 
@@ -634,12 +541,22 @@ public class Json {
 		String sss = null;
 		int t = 0;
 		while (mather.find()) {
-			// System.out.println(mather.group().toString());
 			sss = mather.group();
-
-//			System.out.println("11111" + sss);
 		}
-
 		return sss;
+	}
+	
+	private static String mapPatt(String json) {
+
+//		String regex = "(?<=(\\{\")|(},\"))[^\"\\:\\{]*";
+		String regex = "((?<=\").+?(?=\":\\{))|((?<=\").+?(?=\":))";
+
+		Matcher mather = Pattern.compile(regex).matcher(json);
+		String sss = "ss";
+		while (mather.find()) {
+			sss = mather.group();
+		}
+		return sss;
+
 	}
 }
