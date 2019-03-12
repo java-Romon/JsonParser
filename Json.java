@@ -17,8 +17,7 @@ import com.Json.Name;
 import com.Json.isList;
 
 public class Json {
-	
-	
+
 	public static String toJson(Object o) throws NoSuchFieldException {
 		Class<? extends Object> clazz = o.getClass();
 		StringBuilder s = new StringBuilder();
@@ -68,8 +67,8 @@ public class Json {
 	}
 
 	/**
-	 * 重构出来的方法，为了减少代码的重复
-	 * 遍历方法，得到字段，再调用方法，获取字段的值，再处理格式，
+	 * 重构出来的方法，为了减少代码的重复 遍历方法，得到字段，再调用方法，获取字段的值，再处理格式，
+	 * 
 	 * @param s
 	 * @param clazz
 	 * @param o
@@ -90,7 +89,7 @@ public class Json {
 				Object value = null;
 				try {
 					// 获取值--V
-					//对象调用m方法，获取值
+					// 对象调用m方法，获取值
 					value = m.invoke(o);
 					if (value instanceof List) {
 						s.append("\"list\":");
@@ -140,7 +139,8 @@ public class Json {
 		StringBuilder s = new StringBuilder("{");
 		Class<? extends Set> class1 = map.keySet().getClass();
 		for (Object o : map.keySet()) {
-			s.append(String.format("\"%s\":%s,", o, toJson(map.get(o))));
+
+			s.append(String.format("%s:%s,", toJson(o), toJson(map.get(o))));
 		}
 		s.append("}");
 		s.deleteCharAt(s.length() - 2);
@@ -163,12 +163,19 @@ public class Json {
 		// 遍历列表里的对象
 		for (Object o : list) {
 			Class<? extends Object> clazz = o.getClass();
-			handleObject(s, clazz, o);
-			// 处理Json的格式问题
-			if (s.toString().endsWith(",")) {
-				s.deleteCharAt(s.length() - 1);
+//			s.append(toJson(o));
+			if (o instanceof String) {
+				s.append(toStr(o) + ",");
+			} else if (o instanceof Integer) {
+				s.append(o + ",");
+			} else {
+				handleObject(s, clazz, o);
+				// 处理Json的格式问题
+				if (s.toString().endsWith(",")) {
+					s.deleteCharAt(s.length() - 1);
+				}
+				s.append("},");
 			}
-			s.append("},");
 		}
 		if (s.toString().endsWith(",")) {
 			s.deleteCharAt(s.length() - 1);
@@ -246,9 +253,8 @@ public class Json {
 	}
 
 	/**
-	 * 反序列化
-	 * 将Json字符串中的内容提取出来，放到一个新的对象中，再返回出来
-	 * 通过字段，获取set方法的名字，
+	 * 反序列化 将Json字符串中的内容提取出来，放到一个新的对象中，再返回出来 通过字段，获取set方法的名字，
+	 * 
 	 * @param class1
 	 * @param string
 	 * @return
@@ -263,9 +269,13 @@ public class Json {
 			o = clazz.getDeclaredConstructor();
 		} else if (clazz.getSimpleName().equals("List")) {
 			o = new ArrayList<>();
+		} else if (clazz.getSimpleName().equals("Integer")) {
+			o = listPat(json, n);
+		} else if (clazz.getSimpleName().equals("String")) {
+			o = StringlistPat(json, n);
 		} else {
 			try {
-				//创建一个对象
+				// 创建一个对象
 				Constructor c = clazz.getDeclaredConstructor();
 
 				o = c.newInstance();
@@ -276,40 +286,18 @@ public class Json {
 					String key = f.getName();
 					String name2 = key.substring(0, 1).toUpperCase() + key.substring(1);
 					Method m = clazz.getMethod("set" + name2, f.getType());
-//				if(json.contains("[")) {
-//					String s = listPatt(json);
-//					s.replaceAll("\"", "");
-//				}
-					// System.out.println(m.getName());
-//				Annotation[] ans = f.getAnnotations();
-//				Annotation b = null;
-//				for (Annotation a : ans) {
-//					System.out.println(a);
 					if (f.isAnnotationPresent(isList.class)) {
-
-					}
-
-					else if (f.isAnnotationPresent(Name.class)) {
-//						System.out.println("Address:\t" + f.getName());
-//						value = fromJson(f.getClass(), );
-//						System.out.println("addrss匹配字符串：" + ObPatt(json, n));
+					} else if (f.isAnnotationPresent(Name.class)) {
 						Class<?> perClazz = Class.forName(f.getType().getName());
-//						System.out.println(f.getType());
-//						System.out.println("获取类名：" + perClazz.getName());
 						value = fromJson(perClazz, ObPatt(json, n));
-//						b = a;
-						//对象调用m方法给自己赋值
+						// 对象调用m方法给自己赋值
 						m.invoke(o, value);
 						break;
-
 					} else {
-//				}
-//				if (b == null) {
 						value = patt(key, json, f.getType(), n);
-//						System.out.println(value);
 						if (value != null) {
 							m.invoke(o, value);
-//					}
+
 						}
 					}
 				}
@@ -330,10 +318,33 @@ public class Json {
 	}
 
 	/**
+	 * 反序列化---List
+	 * 
+	 * @param list
+	 * @param      clazz01---list存储的值的类型
+	 * @param json
+	 * @return
+	 */
+	public static <clazz1> Object fromJson(Object list, Class clazz01, String json) {
+		List<Object> l = new ArrayList<>();
+		Object p = null;
+		for (int i = 0; i < 4; i++) {
+			try {
+				p = fromJson(clazz01, json, i);
+			} catch (ClassNotFoundException | NoSuchMethodException | SecurityException e) {
+				e.printStackTrace();
+			}
+			l.add(p);
+		}
+		return l;
+	}
+
+	/**
 	 * 反序列化---HashMap
+	 * 
 	 * @param map
-	 * @param clazz01
-	 * @param clazz02
+	 * @param      clazz01---键的类型
+	 * @param      clazz02---值的类型
 	 * @param json
 	 * @return
 	 * @throws NoSuchMethodException
@@ -347,21 +358,19 @@ public class Json {
 			throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
 
-					HashMap<Object, clazz02> newMap = new HashMap<>();
-					createMap(clazz02, json, newMap);
-					return newMap;
+		HashMap<Object, clazz02> newMap = new HashMap<>();
+		createMap(clazz02, json, newMap);
+		return newMap;
 	}
 
 	private static <clazz02> void createMap(Class clazz02, String json, HashMap<Object, clazz02> newMap)
 			throws NoSuchMethodException {
 		try {
 			Object p;
-			String[] f = { "a", "b", "c" };
-			for (int i = 0; i < f.length; i++) {
+			ArrayList<String> f1 = (ArrayList<String>) mapPatt(json);
+			for (int i = 0; i < f1.size(); i++) {
 				p = fromJson(clazz02, json, i);
-				newMap.put(f[i], (clazz02) p);
-			}
-			for (Object b : newMap.keySet()) {
+				newMap.put(f1.get(i), (clazz02) p);
 			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -382,9 +391,9 @@ public class Json {
 		Matcher mather = Pattern.compile(regex).matcher(json);
 		String sss = null;
 		List<Object> str = new ArrayList<>();
-		//查找与该模式匹配的字符串
+		// 查找与该模式匹配的字符串
 		while (mather.find()) {
-			//返回此字符串
+			// 返回此字符串
 			sss = mather.group();
 			if (!c.equals(String.class)) {
 				str.add(Integer.parseInt(sss));
@@ -469,9 +478,9 @@ public class Json {
 				Field[] fs = clazz.getDeclaredFields();
 				for (Field f : fs) {
 					String key = f.getName();
-                    //将第一个字母大写--因为要用get和set方法
+					// 将第一个字母大写--因为要用get和set方法
 					String name2 = key.substring(0, 1).toUpperCase() + key.substring(1);
-					//通过方法的名字，得到并调用方法
+					// 通过方法的名字，得到并调用方法
 					Method m = clazz.getMethod("set" + name2, f.getType());
 
 					if (f.isAnnotationPresent(isList.class)) {
@@ -479,7 +488,7 @@ public class Json {
 					}
 
 					else if (f.isAnnotationPresent(Name.class)) {
-						//通过全类名得到反射入口
+						// 通过全类名得到反射入口
 						Class<?> perClazz = Class.forName(f.getType().getName());
 						value = fromJson(perClazz, ObPatt(json));
 						m.invoke(o, value);
@@ -514,7 +523,6 @@ public class Json {
 		Matcher mather = Pattern.compile(regex).matcher(json);
 		String sss = null;
 		int t = 0;
-		int j = 0;
 		if (c.equals(String.class)) {
 			while (mather.find()) {
 				sss = mather.group();
@@ -545,18 +553,48 @@ public class Json {
 		}
 		return sss;
 	}
-	
-	private static String mapPatt(String json) {
 
-//		String regex = "(?<=(\\{\")|(},\"))[^\"\\:\\{]*";
-		String regex = "((?<=\").+?(?=\":\\{))|((?<=\").+?(?=\":))";
+	private static Object mapPatt(String json) {
+		String regex = "(?<=(\\},|\\{)\")\\w+(?=\"\\:\\{)";
 
 		Matcher mather = Pattern.compile(regex).matcher(json);
-		String sss = "ss";
+		ArrayList<String> sss = new ArrayList<>();
 		while (mather.find()) {
-			sss = mather.group();
+			sss.add(mather.group());
 		}
 		return sss;
 
+	}
+
+	public static Object listPat(String json, int n) {
+		String regex = "(?<=(\\[|\\,))[^(\\]|\\,)]*";
+
+		Matcher mather = Pattern.compile(regex).matcher(json);
+		String sss = null;
+		int t = 0;
+		while (mather.find()) {
+			sss = mather.group();
+			if (t == n) {
+				break;
+			}
+			t++;
+		}
+		return sss;
+	}
+
+	public static Object StringlistPat(String json, int n) {
+		String regex = "(?<=(\\[\"|\\,\"))[^(\"\\]|\"\\,)]*";
+
+		Matcher mather = Pattern.compile(regex).matcher(json);
+		String sss = null;
+		int t = 0;
+		while (mather.find()) {
+			sss = mather.group();
+			if (t == n) {
+				break;
+			}
+			t++;
+		}
+		return sss;
 	}
 }
