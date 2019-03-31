@@ -297,11 +297,9 @@ public class Json {
 						value = patt(key, json, f.getType(), n);
 						if (value != null) {
 							m.invoke(o, value);
-
 						}
 					}
 				}
-
 			} catch (NoSuchMethodException | SecurityException e) {
 				e.printStackTrace();
 			} catch (InstantiationException e) {
